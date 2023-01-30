@@ -1,6 +1,8 @@
 public class Game {
 
     private Room currentRoom;
+    Room Valley;
+    Room House;
     private Parser parser;
     private Player player;
 
@@ -49,9 +51,12 @@ public class Game {
         Item woodenbox = new Item();
         Item lighter = new Item();
         Item rock = new Item();
+        Item luggage = new Item();
+        Item ghillieSuit = new Item();
 
         LivingRoom.setItem("sword", sword);
         LivingRoom.setItem("hammer", hammer);
+        LivingRoom.setItem("luggage", luggage);
         BabyRoom.setItem("candle", candle);
         Valley.setItem("woodenbox", woodenbox);
         Valley.setItem("key", key);
@@ -109,9 +114,48 @@ public class Game {
             case OPEN:
                 open(command);
                 break;
+
+            case SMASH:
+                smash(command);
+                break;
+
+            case WEAR:
+                wear(command);
+                break;
         }
 
         return wantToQuit;
+    }
+
+    private void wear(Command command){
+        if(!command.hasSecondWord()){
+            System.out.println("Wear what?");
+            return;
+        }
+        String item = command.getSecondWord();
+        if(player.getInventory().containsKey("ghillieSuit") && currentRoom.equals(Valley)){
+            System.out.println("You successfully avoided the mysterious tribe!");
+        }
+        else if(!player.getInventory().containsKey("ghillieSuit") && currentRoom.equals(Valley)){
+            System.out.println("You could not avoid the mysterious tribe, so you went back to the house");
+            currentRoom.equals(House);
+        }
+    }
+
+    private void smash(Command command){
+        if(!command.hasSecondWord()){
+            System.out.println("Smash what?");
+            return;
+        }
+        String item = command.getSecondWord();
+
+        if(player.getInventory().containsKey("hammer") && player.getInventory().containsKey("luggage")){
+            System.out.println("You smashed the luggage and found a ghillie suit.");
+            System.out.println("The ghillie suit goes to your inventory.");
+            player.setItem("ghilleSuit", new Item());
+            player.getItem("luggage");
+            player.getItem("hammer");
+        }
     }
 
     private void open(Command command){
