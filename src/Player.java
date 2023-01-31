@@ -5,9 +5,11 @@ import java.util.Iterator;
 
 public class Player {
     private HashMap<String, Item> inventory;
+    private HashMap<String, Item> appearance;
 
     Player() {
         inventory = new HashMap<>();
+        appearance = new HashMap<>();
     }
 
     public String getItemString() {
@@ -36,8 +38,19 @@ public class Player {
             return false;
     }
 
+    public void setApp(String name, Item item) {
+        appearance.put(name, item);
+    }
+
+    public Item getApp(String name) {
+        return appearance.remove(name);
+    }
     public HashMap getInventory(){
         return inventory;
+    }
+
+    public HashMap getApp() {
+        return appearance;
     }
 
 }

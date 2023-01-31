@@ -133,12 +133,11 @@ public class Game {
             return;
         }
         String item = command.getSecondWord();
-        if(player.getInventory().containsKey("ghillieSuit") && currentRoom.equals(Valley)){
-            System.out.println("You successfully avoided the mysterious tribe!");
-        }
-        else if(!player.getInventory().containsKey("ghillieSuit") && currentRoom.equals(Valley)){
-            System.out.println("You could not avoid the mysterious tribe, so you went back to the house");
-            currentRoom.equals(House);
+
+        if(player.getInventory().containsKey(item)){
+            System.out.println("You wore the ghillie suit");
+            player.getInventory().remove("ghillieSuit");
+            player.setApp("ghillieSuit", new Item());
         }
     }
 
@@ -152,9 +151,9 @@ public class Game {
         if(player.getInventory().containsKey("hammer") && player.getInventory().containsKey("luggage")){
             System.out.println("You smashed the luggage and found a ghillie suit.");
             System.out.println("The ghillie suit goes to your inventory.");
-            player.setItem("ghilleSuit", new Item());
-            player.getItem("luggage");
-            player.getItem("hammer");
+            player.setItem("ghillieSuit", new Item());
+            player.getInventory().remove("luggage");
+            player.getInventory().remove("hammer");
         }
     }
 
@@ -190,7 +189,7 @@ public class Game {
         }
         else {
             player.setItem(item, grabItem);
-            System.out.println("You grabbed " + grabItem + ".");
+            System.out.println("You grabbed " + item + ".");
         }
     }
 
@@ -247,7 +246,16 @@ public class Game {
         if (nextRoom == null) {
             System.out.println("There is no door!");
         }
-        else {
+        else if(player.getApp().containsKey("ghillieSuit")){
+            System.out.println("You avoided the mysterious tribe!");
+            currentRoom.equals("Valley");
+            System.out.println(currentRoom.getShortDescription());
+        }
+        else if(!player.getApp().containsKey("ghillieSuit")){
+            System.out.println("You could not avoid the mysterious tribe, so you go back to the previous room!");
+            currentRoom.equals("House");
+        }
+        else if(!nextRoom.equals("Valley")){
             currentRoom = nextRoom;
             System.out.println(currentRoom.getShortDescription());
         }
