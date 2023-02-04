@@ -2,8 +2,14 @@ public class Game {
 
     private Room currentRoom;
     Room Valley;
-    Room House;
+    Room ForestPath;
+    Room Forest;
+    Room Cemetery;
+    boolean finished;
     boolean wantToQuit = false;
+    Boolean bright = false;
+    Boolean threw = false;
+    Boolean died = false;
     private Parser parser;
     private Player player;
 
@@ -22,11 +28,11 @@ public class Game {
     private void createRooms() {
         Room House = new Room("The wooden house is surrounded by a metal fence.", "The house has two floors, and the fence is opened. The first floor has a living room, and it has a sword and hammer. The second floor has a baby's room and a bathroom. To the south of this house, there is a valley.");
         Room BabyRoom = new Room("The baby's room is on the second floor of the house.", "The baby's room has a candle on the desk.");
-        Room LivingRoom = new Room("The living room is on the first floor of the house.", "The living room has a sword and a hammer on the floor.");
-         Valley = new Room("The valley has a lake between two giant mountains.", "There is a mysterious tribe that kills anyone with unique appearance. Also, there is a small tree with a nest of birds. The nest has a locked wooden box that needs a key to open. To the east, there is a forest path.");
-        Room ForestPath = new Room("This is a forest path toward a forest to the east and a cemetery to the south.", "There are a a lot of trees and rocks along the path. It's too dark, so you cannot move without any sort of light. To the south, there is a cemetery with an opened gate.");
-        Room Forest = new Room("This forest has a tremendous amount of trees, and it is surrounded by giant mountains that look impenetrable.", "There aren't any humans, but there are some big animals, including tigers. They will attack anything that makes noises. You can use any utensils to avoid the animals.");
-        Room Cemetery = new Room("The cemetery is surrounded by the fence, but the gate is opened.", "The cemetery has some spirits from the grave. They will be mad and punish you if you touch inappropriate area of the cemetery. In the middle of the cemetery, there is a weird door which is not connected to any other place.");
+        Room LivingRoom = new Room("The living room is on the first floor of the house.", "The living room has a sword, a hammer, and a luggage on the floor. You can smash the luggage with the hammer to get a new item.");
+        Valley = new Room("The valley has a lake between two giant mountains.", "There is a mysterious tribe that kills anyone with unique appearance. Also, there is a small tree with a nest of birds. The nest has a locked wooden box that needs a key to open. You will need to kill the bird to get the key. To the east, there is a forest path and you need to have any sort of lights to go to there.");
+        ForestPath = new Room("This is a forest path toward a forest to the east and a cemetery to the south.", "There are a a lot of trees and rocks along the path. To the south, there is a cemetery with an opened gate. To the east, there is a forest but you need to distract the tigers. To distract them, you should throw the rock to go there.");
+        Forest = new Room("This forest has a tremendous amount of trees, and it is surrounded by giant mountains that look impenetrable.", "There aren't any humans, but there are some big animals, including tigers. They will attack anything that makes noises. You can throw rocks to avoid the animals. In the road to the cemetery, there are some spirits and you should not touch anything.");
+        Cemetery = new Room("The cemetery is surrounded by the fence, but the gate is opened.", "The cemetery has some spirits from the grave. They will be mad and kill you if you touch any area of the cemetery. If you did not touch anything, the spirits will give you the passcode of the mystery door. In the middle of the cemetery, there is a weird door with a door lock which is connected to the heaven.");
 
         House.setExit("south", Valley);
         House.setExit("in", LivingRoom);
@@ -58,7 +64,6 @@ public class Game {
         LivingRoom.setItem("luggage", luggage);
         BabyRoom.setItem("candle", candle);
         Valley.setItem("woodenbox", woodenbox);
-        Valley.setItem("key", key);
         ForestPath.setItem("rock", rock);
 
         currentRoom = House;
@@ -66,9 +71,7 @@ public class Game {
 
     public void play() {
         printWelcome();
-
-        boolean finished = false;
-
+        finished = false;
         while(!finished) {
             Command command = parser.getCommand();
             finished = processCommand(command);
@@ -76,8 +79,9 @@ public class Game {
         System.out.println("Thanks for playing!");
     }
 
+
     private boolean processCommand(Command command) {
-        boolean wantToQuit = false;
+        wantToQuit = false;
 
         CommandWord commandWord = command.getCommandWord();
 
@@ -126,13 +130,70 @@ public class Game {
                 light(command);
                 break;
 
+            case THROW:
+                throw1(command);
+                break;
+
+            case TOUCH:
+                touch(command);
+                break;
+
+            case KILL:
+                kill(command);
+                break;
+
         }
 
         return wantToQuit;
     }
+    private void kill(Command command){
+        if(currentRoom.equals(Valley)){
+            if(player.getInventory().containsKey("sword")){
+                System.out.println("You got a key for the wooden box from killing the birds.");
+                player.setItem("key", new Item());
+                player.getItem("sword");
+                return;
+            }
+        }
+    }
+    private void touch(Command command){
+        if(currentRoom.equals(Cemetery)){
+            died = true;
+            return;
+        }
+        else if(!currentRoom.equals(Cemetery)){
+            died = false;
+            return;
+        }
+    }
+    private void throw1(Command command){
+        if(!command.hasSecondWord()){
+            System.out.println("Throw what?");
+            return;
+        }
+        String item = command.getSecondWord();
 
+        if(player.getInventory().containsKey("rock")){
+            System.out.println("You threw the rock to distract tigers.");
+            threw = true;
+            player.getItem("rock");
+            return;
+        }
+    }
     private void light(Command command){
+        if(!command.hasSecondWord()){
+            System.out.println("Light what?");
+            return;
+        }
+        String item = command.getSecondWord();
 
+        if(player.getInventory().containsKey("lighter") && player.getInventory().containsKey("candle")){
+            System.out.println("You lighted the candles");
+            player.getItem("lighter");
+            player.getItem("candle");
+            bright = true;
+            return;
+        }
     }
     private void wear(Command command){
         if(!command.hasSecondWord()){
@@ -172,13 +233,30 @@ public class Game {
 
         String item = command.getSecondWord();
 
-        if(player.getInventory().containsKey("key") && player.getInventory().containsKey("woodenbox")){
-            System.out.println("You opened the wooden box and found a lighter for candles.");
-            System.out.println("The lighter goes to your inventory.");
-            player.setItem("lighter", new Item());
-            player.getItem("woodenbox");
-            player.getItem("key");
+        if(currentRoom.equals(Valley)){
+            if(player.getInventory().containsKey("key") && player.getInventory().containsKey("woodenbox")){
+                System.out.println("You opened the wooden box and found a lighter for candles.");
+                System.out.println("The lighter goes to your inventory.");
+                player.setItem("lighter", new Item());
+                player.getItem("woodenbox");
+                player.getItem("key");
+                return;
+            }
         }
+        else if(currentRoom.equals(Cemetery)){
+            System.out.println("Enter the passcode from the spirits. say open + passcode");
+            String key = command.getSecondWord();
+            if(key.equals("0203")){
+                System.out.println("Yay! You won the game. You will go to the heaven!");
+                wantToQuit = true;
+                return;
+            }
+            else{
+                System.out.println("Wrong passcode!");
+                return;
+            }
+        }
+
     }
 
     private void grab(Command command) {
@@ -258,20 +336,61 @@ public class Game {
             if (nextRoom.equals(Valley)) {
                 if(player.getApp().containsKey("ghillieSuit")) {
                     System.out.println("You avoided the mysterious tribe!");
-                    currentRoom.equals("Valley");
+                    currentRoom = nextRoom;
                     System.out.println(currentRoom.getShortDescription());
                     return;
                 }
                 else if (!player.getApp().containsKey("ghillieSuit")) {
                     System.out.println("You could not avoid the mysterious tribe! You are dead. Game Finished.");
                     wantToQuit = true;
+                    return;
                 }
             }
-            else if (!nextRoom.equals(Valley)) {
+            else if(nextRoom.equals(ForestPath)){
+                if(bright.equals(true)){
+                    System.out.println("You can now see the path! Also, you can grab some rocks from the floor. It will be helpful for you to pass the Forest.");
+                    currentRoom = nextRoom;
+                    wantToQuit = false;
+                    return;
+                }
+                else if(bright.equals(false)){
+                    System.out.println("You cannot survive in the darkness. Game finished.");
+                    wantToQuit = true;
+                    return;
+                }
+                return;
+            }
+            else if(nextRoom.equals(Forest)){
+                if(threw.equals(true)){
+                    System.out.println("You successfully distracted tigers! You survived.");
+                    wantToQuit = false;
+                    currentRoom = nextRoom;
+                    return;
+                }
+                else if(threw.equals(false)){
+                    System.out.println("You could not avoid tigers. You are dead. Game finished.");
+                    return;
+                }
+            }
+            else if(nextRoom.equals(Cemetery)){
+                if(died.equals(true)){
+                    System.out.println("You touched the area of cemetery. The spirits killed you. Game finished.");
+                    wantToQuit = true;
+                    return;
+                }
+                else if(died.equals(false)){
+                    System.out.println("You did not make the spirits angry! They whispered 0203.");
+                    currentRoom = nextRoom;
+                    wantToQuit = false;
+                    return;
+                }
+            }
+            else{
                 currentRoom = nextRoom;
                 System.out.println(currentRoom.getShortDescription());
                 return;
             }
+
         }
     }
 
